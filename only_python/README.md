@@ -1,4 +1,4 @@
-# Delete bg from image / video
+# Delete bg from image / video - no node.js needed (slow)
 
 Version using only python, tensorflow, opencv and numpy.
 

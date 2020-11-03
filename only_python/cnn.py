@@ -14,31 +14,31 @@ class Resnet:
     def __init__(self, model_path, even):
         self.model = load_graph_model(model_path)
         self.even = even
+        # get input and output tensors
+        input_tensor_names = get_input_tensors(self.model)
+        self.output_tensor_names = get_output_tensors(self.model)
+        self.input_tensor = self.model.get_tensor_by_name(input_tensor_names[0])
 
     def get_mask(self, img):
-        imgWidth, imgHeight = img.shape[:2]#img.size
-
-        # Get input and output tensors
-        input_tensor_names = get_input_tensors(self.model)
-        output_tensor_names = get_output_tensors(self.model)
-        input_tensor = self.model.get_tensor_by_name(input_tensor_names[0])
+        imgWidth, imgHeight = img.shape[:2]
 
         # Preprocessing Image
-        m = np.array([-123.15, -115.90, -103.06])
-        x = np.add(img, m)
+        # add imagenet mean - extracted from body-pix source
+        mean = np.array([-123.15, -115.90, -103.06])
+        x = np.add(img, mean)
         sample_image = x[tf.newaxis, ...]
         print("done.\nRunning inference...", end="")
 
         # evaluate the loaded model directly
         with tf.compat.v1.Session(graph=self.model) as sess:
-            results = sess.run(output_tensor_names, feed_dict={
-                            input_tensor: sample_image})
+            results = sess.run(self.output_tensor_names, feed_dict={
+                            self.input_tensor: sample_image})
 
-        for idx, name in enumerate(output_tensor_names):
+        for idx, name in enumerate(self.output_tensor_names):
             if 'float_segments' in name:
                 segments = np.squeeze(results[idx], 0)
 
-        # Segmentation MASk
+        # segmentation mask
         segmentation_threshold = 0.7
         mask_small = np.where(segments < segmentation_threshold, [0,0,0], [1,1,1]).astype('uint8')
         mask = cv2.resize(mask_small, (imgHeight,imgWidth))
