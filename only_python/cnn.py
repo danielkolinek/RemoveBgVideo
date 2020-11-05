@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from libs.utils import load_graph_model, get_input_tensors, get_output_tensors
+from only_python.libs.utils import load_graph_model, get_input_tensors, get_output_tensors
 
 # tensorflow not printing
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "3"
@@ -19,7 +19,7 @@ class Resnet:
         self.output_tensor_names = get_output_tensors(self.model)
         self.input_tensor = self.model.get_tensor_by_name(input_tensor_names[0])
 
-    def get_mask(self, img):
+    def get_mask(self, img, bg, _):
         imgWidth, imgHeight = img.shape[:2]
 
         # Preprocessing Image
@@ -27,7 +27,6 @@ class Resnet:
         mean = np.array([-123.15, -115.90, -103.06])
         x = np.add(img, mean)
         sample_image = x[tf.newaxis, ...]
-        print("done.\nRunning inference...", end="")
 
         # evaluate the loaded model directly
         with tf.compat.v1.Session(graph=self.model) as sess:
@@ -42,4 +41,4 @@ class Resnet:
         segmentation_threshold = 0.7
         mask_small = np.where(segments < segmentation_threshold, [0,0,0], [1,1,1]).astype('uint8')
         mask = cv2.resize(mask_small, (imgHeight,imgWidth))
-        return mask
+        return np.where(mask==1, img, bg) 
