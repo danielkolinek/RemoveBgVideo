@@ -30,6 +30,8 @@ This is maybe the best way for now. Everything needed is here: https://pypi.org/
 ### Requirements
 - Python 3
     - numpy, opencv, argparse, pyfakewebcam, tf_bodypix, tensorflow
+- Fake camera
+    - v4l2loopback-dkms, modprobe
 
 ## 3. Only python
 Version using only python, tensorflow, opencv and numpy.
