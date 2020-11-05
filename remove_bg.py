@@ -12,7 +12,8 @@ from functions.functions import run_video, run_img, run_camera
 from only_python.cnn import Resnet
 
 def get_masked_img_python_node(image, bg, _):
-    _, data = cv2.imencode(".jpg", image)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    _, data = cv2.imencode(".jpg", image_rgb)
     r = requests.post(
         url='http://127.0.0.1:8080',
         data=data.tobytes(),
@@ -26,9 +27,9 @@ def get_masked_img_python_node(image, bg, _):
     return np.where(mask==1, image, bg)
 
 def get_masked_img_bodypix_api(image, bg, bodypix_model):
-    image_array = tf.keras.preprocessing.image.img_to_array(image)
-    result = bodypix_model.predict_single(image_array)
-    mask = result.get_mask(threshold=0.75)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    result = bodypix_model.predict_single(image_rgb)
+    mask = result.get_mask(threshold=0.5)
     return np.where(mask==1, image, bg)
 
 # run like python3 morph.py --image_1 ../img/DB1_B/101_2.tif --image_2 ../img/DB1_B/102_2.tif --blocksize 10
