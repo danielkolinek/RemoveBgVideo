@@ -11,7 +11,7 @@ from tf_bodypix.api import download_model, load_model, BodyPixModelPaths
 from functions.functions import run_video, run_img, run_camera
 from only_python.cnn import Resnet
 
-def get_masked_img_python_node(image, bg, _):
+def get_mask_python_node(image, bg, bodypix_model, threshold):
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     _, data = cv2.imencode(".jpg", image_rgb)
     r = requests.post(
@@ -23,14 +23,13 @@ def get_masked_img_python_node(image, bg, _):
     mask = np.frombuffer(r.content, dtype=np.uint8)
     mask = mask.reshape((image.shape[0], image.shape[1]))
     # reshape mask from 2d to 3d
-    mask = np.repeat(np.expand_dims(mask, axis=2), 3,  axis=2)
-    return np.where(mask==1, image, bg)
+    return np.repeat(np.expand_dims(mask, axis=2), 3,  axis=2)
+    
 
-def get_masked_img_bodypix_api(image, bg, bodypix_model):
+def get_mask_bodypix_api(image, bg, bodypix_model, threshold):
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     result = bodypix_model.predict_single(image_rgb)
-    mask = result.get_mask(threshold=0.5)
-    return np.where(mask==1, image, bg)
+    return result.get_mask(threshold=threshold)
 
 # run like python3 morph.py --image_1 ../img/DB1_B/101_2.tif --image_2 ../img/DB1_B/102_2.tif --blocksize 10
 parser = argparse.ArgumentParser(
@@ -62,41 +61,57 @@ parser.add_argument("--height",
 parser.add_argument("--fps",
                     metavar="camera fps", required=False,
                     help="For live camera input.")
+parser.add_argument("--threshold",
+                    metavar="threshold", required=False,
+                    help="Treshold for decision if not bg.")
 parser.add_argument('--bg', required=True,
                     metavar="/path/to/bg",
                     help="Backgroung that will replace oldone")
 parser.add_argument('--save', required=False,
                     metavar="filename",
                     help="filename for result (example \"--save result.jpg\" will create result.jpg)")
+parser.add_argument('--starwars', required=False,action="store_true",
+                    help="Try yourself")
 args = parser.parse_args()
 
 def get_right_mask_function(option):
     if option == "1":
-        return get_masked_img_python_node, ""
+        return get_mask_python_node, ""
     elif option == "2":
         bodypix_model = load_model(download_model(
             BodyPixModelPaths.MOBILENET_FLOAT_50_STRIDE_16
+            #BodyPixModelPaths.MOBILENET_RESNET50_FLOAT_STRIDE_16
         ))
-        return get_masked_img_bodypix_api, bodypix_model
+        return get_mask_bodypix_api, bodypix_model
     elif option == "3":
         resnet_model = Resnet('only_python/json_model/model.json', 16)
         return resnet_model.get_mask, ""
 
 
+
+if args.threshold is None:
+    threshold = 0.75
+else:
+    threshold = float(args.threshold)
+
 get_masked_img_function, model = get_right_mask_function(args.o)
 #if input is video
 if args.video is not None and args.bg is not None and args.save is not None:
     frame_counter = 0
-    run_video(args.video, args.bg, args.save, frame_counter, get_masked_img_function, model)
+    run_video(args.video, args.bg, args.save, frame_counter, get_masked_img_function, model, threshold)
 #if input is video
 elif args.img is not None and args.bg is not None and args.save is not None:
-    run_img(args.img, args.bg, args.save, get_masked_img_function, model)
+    run_img(args.img, args.bg, args.save, get_masked_img_function, model, threshold)
 #if input is camera and want to produce fake video
 elif args.camerain is not None and args.cameraout is not None:
     if args.o == "3":
         print("Sorry but for this use option 3 can not be used")
         exit()
-    run_camera(args.camerain, args.cameraout, args.height, args.width, args.fps, args.bg, get_masked_img_function, model)
+    easteregg = False
+    if args.starwars:
+        easteregg = "starwars"
+    
+    run_camera(args.camerain, args.cameraout, args.height, args.width, args.fps, args.bg, get_masked_img_function, model, threshold, easteregg)
 
 #mistake
 else:

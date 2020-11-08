@@ -19,7 +19,7 @@ class Resnet:
         self.output_tensor_names = get_output_tensors(self.model)
         self.input_tensor = self.model.get_tensor_by_name(input_tensor_names[0])
 
-    def get_mask(self, img, bg, _):
+    def get_mask(self, img, bg, _, threshold):
         imgWidth, imgHeight = img.shape[:2]
 
         # Preprocessing Image
@@ -38,7 +38,5 @@ class Resnet:
                 segments = np.squeeze(results[idx], 0)
 
         # segmentation mask
-        segmentation_threshold = 0.7
-        mask_small = np.where(segments < segmentation_threshold, [0,0,0], [1,1,1]).astype('uint8')
-        mask = cv2.resize(mask_small, (imgHeight,imgWidth))
-        return np.where(mask==1, img, bg) 
+        mask_small = np.where(segments < threshold, [0,0,0], [1,1,1]).astype('uint8')
+        return cv2.resize(mask_small, (imgHeight,imgWidth)) 

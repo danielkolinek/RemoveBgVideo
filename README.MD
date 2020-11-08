@@ -19,7 +19,8 @@ This version was created becouse of being able to run on GPU. In time of release
 
 ### Before running script
 - run server
-    - nodejs node_part/app.js
+    - `nodejs node_part/app.js 0.75` 
+    - the 0.75 is 
 - for camera firstly fake camera has to be created (run as sudo)
     - `modprobe -r v4l2loopback`
     - `sudo modprobe v4l2loopback devices=1 video_nr=5 card_label="v4l2loopback" exclusive_caps=1`
@@ -32,6 +33,9 @@ This is maybe the best way for now. Everything needed is here: https://pypi.org/
     - numpy, opencv, argparse, pyfakewebcam, tf_bodypix, tensorflow
 - Fake camera
     - v4l2loopback-dkms, modprobe
+
+### Before running script
+- for camera firstly fake camera has to be created (run as sudo). Same like before.
 
 ## 3. Only python
 Version using only python, tensorflow, opencv and numpy.
@@ -57,7 +61,7 @@ Download resnet model with script:
 - Nvidia: NVIDIA-SMI 455.32.00, Cuda 10
 
 ## Run script
-`remove_bg.py [-h] [--o option] [--img /path/to/image] [--video /path/to/video] --bg /path/to/bg [--save filename] [--camerain videoIn] [--cameraout videoOut] [--height heightForCamera] [--width widthForCamera] [--fps fpsForCamera] `
+`remove_bg.py [-h] [--o option] [--img /path/to/image] [--video /path/to/video] --bg /path/to/bg [--save filename] [--camerain videoIn] [--cameraout videoOut] [--height heightForCamera] [--width widthForCamera] [--fps fpsForCamera] [--threshold thresholdForDetection] [--starwars] `
 
 - `-h` 
     - for help
@@ -70,8 +74,13 @@ Download resnet model with script:
     - for input image or video, choose only one, if you wanna use video, be prepared, couse it takes a lot of time.
 - `--bg`
     - backgroung that will replace oldone  
+    - for blur bg use `blur`
 - `--save`
     - filename for result
+- `--threshold`
+    - threshold for cnn
+- `--starwars`
+    - Easter egg holo
 
 Setings for camera:
 - `--camerain`

@@ -1,6 +1,7 @@
 const tf = require('@tensorflow/tfjs-node-gpu');
 const bodyPix = require('@tensorflow-models/body-pix');
 const http = require('http');
+trashold =  parseFloat(process.argv[2]);
 (async () => {
     //mobilnet
     /* 
@@ -22,7 +23,7 @@ const http = require('http');
     const net = await bodyPix.load({
         architecture: 'MobileNetV1',
         outputStride: 16,
-        multiplier: 0.75,
+        multiplier: trashold,
         quantBytes: 2
     });
     http.createServer(function(req, res){
