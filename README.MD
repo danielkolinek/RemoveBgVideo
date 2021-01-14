@@ -24,6 +24,8 @@ This version was created becouse of being able to run on GPU. In time of release
 - for camera firstly fake camera has to be created (run as sudo)
     - `modprobe -r v4l2loopback`
     - `sudo modprobe v4l2loopback devices=1 video_nr=5 card_label="v4l2loopback" exclusive_caps=1`
+-for use on ms teams
+    - `sudo modprobe v4l2loopback exclusive_caps=1`
 
 ## 2. Bodypix-api
 This is maybe the best way for now. Everything needed is here: https://pypi.org/project/tf-bodypix/
